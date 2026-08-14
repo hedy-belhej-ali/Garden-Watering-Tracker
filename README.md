@@ -1,6 +1,7 @@
 A small React + Vite timer app for tracking how long you spend watering each tree in your garden (for my father).
 ## Image
 <img width="1320" height="870" alt="image" src="https://github.com/user-attachments/assets/1e3dae3b-61bf-410c-9da7-b81df741d592" />
+
 ## Features
 
 - **Per-tree timer** — start, pause, resume, and finish each watering session. The countdown is based on your configured minutes-per-tree.
