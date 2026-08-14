@@ -1,16 +1,44 @@
-# React + Vite
+# Garden Watering Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A small React + Vite timer app for tracking how long you spend watering each tree in your garden.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Per-tree timer** — start, pause, resume, and finish each watering session. The countdown is based on your configured minutes-per-tree.
+- **Reminder notifications** — a sound plays once when you start, and then repeats (per your settings) every reminder interval. Browser notifications remind you to move to the next tree.
+- **Sound settings** — pick a notification sound (Default, Chime, Bell, Soft notification), enable/disable alerts, and set the volume.
+- **Watered trees table** — every finished tree is recorded with its start time, time taken, and finish time. Delete any entry and the trees are renumbered.
+- **Everything persists** — timer state and settings are saved to `localStorage` and restored on reload.
 
-## React Compiler
+## Getting started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the Oxlint configuration
+The dev server runs on `http://localhost:1001` (set in `vite.config.js`).
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Scripts
+
+| Command          | Description                    |
+| ---------------- | ------------------------------ |
+| `npm run dev`    | Start the dev server           |
+| `npm run build`  | Build for production (`dist/`) |
+| `npm run preview`| Preview the production build   |
+| `npm run lint`   | Run oxlint                     |
+
+## Project structure
+
+```
+src/
+  App.jsx            — app state, timer logic, navigation, table
+  SettingsModal.jsx  — settings modal (Time, Alert Sound, Notification Sound, Volume)
+  FieldBackdrop.jsx  — animated garden backdrop
+  icons.jsx          — SVG icon components
+  settings.js        — defaults, sound options, persistence helpers
+  useAlarmSound.js   — Web Audio sound engine
+  useNotification.js — browser notifications
+  App.css            — styles
+  index.css          — design tokens
+```
