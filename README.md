@@ -1,5 +1,3 @@
-<img width="1320" height="870" alt="image" src="https://github.com/user-attachments/assets/e669743c-3fa3-45f1-a9a9-20297669dba6" /># Garden Watering Tracker
-
 A small React + Vite timer app for tracking how long you spend watering each tree in your garden (for my father).
 <img width="1320" height="870" alt="image" src="https://github.com/user-attachments/assets/1e3dae3b-61bf-410c-9da7-b81df741d592" />
 ## Features
