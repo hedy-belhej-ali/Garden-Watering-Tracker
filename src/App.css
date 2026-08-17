@@ -245,6 +245,16 @@
   border-color: #d8d0be;
 }
 
+.settings-card--disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.settings-card--disabled .alert-toggle-row {
+  pointer-events: auto;
+  opacity: 1;
+}
+
 .settings-card-head {
   display: flex;
   align-items: center;

@@ -136,8 +136,9 @@ function AlertSoundCard({ settings, updateSetting }) {
 }
 
 function NotificationSoundCard({ settings, updateSetting, play }) {
+  const disabled = !settings.soundEnabled
   return (
-    <section className="settings-card card-accent-blue">
+    <section className={`settings-card card-accent-blue ${disabled ? 'settings-card--disabled' : ''}`}>
       <div className="settings-card-head">
         <span className="settings-card-icon icon-blue">
           <MusicNoteIcon size={18} />
@@ -153,6 +154,7 @@ function NotificationSoundCard({ settings, updateSetting, play }) {
           <select
             id="sound-type"
             value={settings.soundType}
+            disabled={disabled}
             onChange={(e) => updateSetting('soundType', e.target.value)}
           >
             {SOUND_TYPES.map((t) => (
@@ -165,6 +167,7 @@ function NotificationSoundCard({ settings, updateSetting, play }) {
         <button
           type="button"
           className="btn-listen"
+          disabled={disabled}
           onClick={() =>
             play(settings.soundType, settings.volume, settings.repetitions)
           }
@@ -178,8 +181,9 @@ function NotificationSoundCard({ settings, updateSetting, play }) {
 }
 
 function VolumeCard({ settings, updateSetting }) {
+  const disabled = !settings.soundEnabled
   return (
-    <section className="settings-card card-accent-orange">
+    <section className={`settings-card card-accent-orange ${disabled ? 'settings-card--disabled' : ''}`}>
       <div className="settings-card-head">
         <span className="settings-card-icon icon-orange">
           <VolumeIcon size={18} />
@@ -204,6 +208,7 @@ function VolumeCard({ settings, updateSetting }) {
             max="100"
             step="1"
             value={settings.volume}
+            disabled={disabled}
             style={{ '--range-p': `${settings.volume}%` }}
             onChange={(e) =>
               updateSetting('volume', Number(e.target.value))
