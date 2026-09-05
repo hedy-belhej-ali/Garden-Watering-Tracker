@@ -6,7 +6,7 @@ Instead of guessing whether each tree got its fair share, start the timer when y
 
 ## Screenshot
 
-<img width="1320" height="870" alt="Garden Watering Tracker UI" src="https://github.com/user-attachments/assets/1e3dae3b-61bf-410c-9da7-b81df741d592" />
+<img width="1036" height="837" alt="image" src="https://github.com/user-attachments/assets/e7293f57-fec9-416b-afd6-d6c463453a62" />
 
 ## How it works
 
