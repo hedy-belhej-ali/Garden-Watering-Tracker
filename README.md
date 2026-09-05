@@ -7,8 +7,12 @@ A small React + Vite timer app for tracking how long you spend watering each tre
 - **Per-tree timer** — start, pause, resume, and finish each watering session. The countdown is based on your configured minutes-per-tree.
 - **Reminder notifications** — a sound plays once when you start, and then repeats (per your settings) every reminder interval. Browser notifications remind you to move to the next tree.
 - **Sound settings** — pick a notification sound (Default, Chime, Bell, Soft notification), enable/disable alerts, and set the volume.
-- **Watered trees table** — every finished tree is recorded with its start time, time taken, and finish time. Delete any entry and the trees are renumbered.
-- **Everything persists** — timer state and settings are saved to `localStorage` and restored on reload.
+- **Tree names** — rename each tree inline ("Olive 1", "Lemon tree") instead of the default "Tree N".
+- **Watered trees table** — every finished tree is recorded with its name, start time, time taken, and finish time. Delete any entry and the trees are renumbered.
+- **Session summary** — live count of trees watered, total session time, and average time per tree.
+- **CSV export** — one click to download the watered-trees history as a spreadsheet-ready CSV.
+- **Installable PWA / offline** — the app can be installed to the home screen and works offline once loaded.
+- **Everything persists** — timer state and settings are saved to `localStorage` and restored on reload. Corrupt or partial data is safely sanitized on load instead of crashing.
 
 ## Getting started
 
@@ -32,13 +36,23 @@ The dev server runs on `http://localhost:1001` (set in `vite.config.js`).
 
 ```
 src/
-  App.jsx            — app state, timer logic, navigation, table
+  App.jsx            — app state, timer logic, navigation, table, CSV export
   SettingsModal.jsx  — settings modal (Time, Alert Sound, Notification Sound, Volume)
   FieldBackdrop.jsx  — animated garden backdrop
   icons.jsx          — SVG icon components
-  settings.js        — defaults, sound options, persistence helpers
+  settings.js        — defaults, sound options, persistence + sanitization helpers
   useAlarmSound.js   — Web Audio sound engine
   useNotification.js — browser notifications
   App.css            — styles
   index.css          — design tokens
+scripts/
+  generate-icons.mjs — regenerates the PWA PNG icons (no image dependencies)
+public/
+  pwa-192.png        — app icon (192px)
+  pwa-512.png        — app icon (512px)
+  pwa-maskable-512.png — maskable icon (512px)
+  apple-touch-icon.png — iOS home-screen icon
 ```
+
+Installability requires the app to be served over HTTPS (or `localhost`). The PWA
+manifest and service worker are generated at build time by `vite-plugin-pwa`.

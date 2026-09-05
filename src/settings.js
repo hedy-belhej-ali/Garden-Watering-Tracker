@@ -22,12 +22,73 @@ export const REPETITIONS_MAX = 10
 export const STORAGE_KEY = 'tree-watering-state'
 export const SETTINGS_KEY = 'tree-watering-settings'
 
+const MAX_TREES = 500
+const MAX_NAME_LENGTH = 60
+
 export function loadJSON(key) {
   try {
-    return JSON.parse(localStorage.getItem(key)) || null
+    const raw = localStorage.getItem(key)
+    return raw == null ? null : JSON.parse(raw)
   } catch {
     return null
   }
+}
+
+export function createId() {
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID()
+    }
+  } catch {
+    // fall back below
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
+function num(v, fallback) {
+  const n = Number(v)
+  return Number.isFinite(n) ? n : fallback
+}
+
+function optionalTimestamp(v) {
+  if (v == null) return null
+  return Math.max(0, num(v, 0))
+}
+
+function sanitizeTree(t) {
+  if (!t || typeof t !== 'object') return null
+  return {
+    id: typeof t.id === 'string' && t.id ? t.id : createId(),
+    number: Math.max(1, Math.round(num(t.number, 1))),
+    duration: Math.max(0, num(t.duration, 0)),
+    startedAt: optionalTimestamp(t.startedAt),
+    completedAt: optionalTimestamp(t.completedAt),
+    name: typeof t.name === 'string' ? t.name.trim().slice(0, MAX_NAME_LENGTH) : '',
+  }
+}
+
+function sanitizeState(raw) {
+  const source = raw && typeof raw === 'object' ? raw : {}
+  const trees = Array.isArray(source.trees)
+    ? source.trees
+        .slice(0, MAX_TREES)
+        .map(sanitizeTree)
+        .filter(Boolean)
+    : []
+  return {
+    trees,
+    watering: source.watering === true,
+    paused: source.paused === true,
+    accumulatedMs: Math.max(0, num(source.accumulatedMs, 0)),
+    segmentStart: source.segmentStart == null ? null : Math.max(0, num(source.segmentStart, 0)),
+    startedAt: source.startedAt == null ? null : Math.max(0, num(source.startedAt, 0)),
+  }
+}
+
+// Safe parse + schema validation. Corrupt or partial localStorage
+// falls back to sane defaults instead of crashing on load.
+export function loadState(key = STORAGE_KEY) {
+  return sanitizeState(loadJSON(key))
 }
 
 export function clamp(v, min, max) {

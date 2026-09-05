@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
 import { FieldBackdrop } from './FieldBackdrop'
-import { CloseIcon, GearIcon, TreeIcon } from './icons'
+import { CloseIcon, DownloadIcon, GearIcon, TreeIcon } from './icons'
 import SettingsModal from './SettingsModal'
 import {
   clamp,
+  createId,
   DEFAULT_SETTINGS,
-  loadJSON,
   loadSettings,
+  loadState,
   REPETITIONS_MAX,
   REPETITIONS_MIN,
   SETTINGS_KEY,
@@ -46,18 +47,58 @@ function formatTimeOfDay(ts) {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+function treeDisplayName(tree) {
+  return tree.name ? tree.name : `Tree ${tree.number}`
+}
+
+function csvField(value) {
+  const s = String(value ?? '')
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+}
+
+function downloadCSV(trees) {
+  const header = [
+    'Number',
+    'Name',
+    'Started at',
+    'Finished at',
+    'Duration (min)',
+    'Duration (sec)',
+  ]
+  const rows = trees.map((t) => [
+    t.number,
+    treeDisplayName(t),
+    t.startedAt ? new Date(t.startedAt).toLocaleString() : '',
+    t.completedAt ? new Date(t.completedAt).toLocaleString() : '',
+    (t.duration / 60000).toFixed(2),
+    Math.round(t.duration / 1000),
+  ])
+  const csv = [header, ...rows]
+    .map((row) => row.map(csvField).join(','))
+    .join('\r\n')
+  const blob = new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `watered-trees-${new Date().toISOString().slice(0, 10)}.csv`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
+}
+
 function App() {
-  const saved = loadJSON(STORAGE_KEY)
+  const saved = loadState()
   const [trees, setTrees] = useState(() =>
-    [...(saved?.trees || [])].sort(
+    [...saved.trees].sort(
       (a, b) => (b.completedAt || 0) - (a.completedAt || 0),
     ),
   )
-  const [watering, setWatering] = useState(saved?.watering || false)
-  const [paused, setPaused] = useState(saved?.paused || false)
-  const [accumulatedMs, setAccumulatedMs] = useState(saved?.accumulatedMs || 0)
-  const [segmentStart, setSegmentStart] = useState(saved?.segmentStart ?? null)
-  const [startedAt, setStartedAt] = useState(saved?.startedAt ?? null)
+  const [watering, setWatering] = useState(saved.watering)
+  const [paused, setPaused] = useState(saved.paused)
+  const [accumulatedMs, setAccumulatedMs] = useState(saved.accumulatedMs)
+  const [segmentStart, setSegmentStart] = useState(saved.segmentStart)
+  const [startedAt, setStartedAt] = useState(saved.startedAt)
   const [settings, setSettings] = useState(loadSettings)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
@@ -182,8 +223,9 @@ function App() {
       accumulatedMs + (paused || !segmentStart ? 0 : Date.now() - segmentStart)
     setTrees((prev) => [
       {
-        id: Date.now(),
+        id: createId(),
         number: currentTreeNumber,
+        name: '',
         duration,
         startedAt,
         completedAt: Date.now(),
@@ -206,6 +248,14 @@ function App() {
     })
   }
 
+  const renameTree = (id, name) => {
+    setTrees((prev) =>
+      prev.map((t) =>
+        t.id === id ? { ...t, name: name.trim().slice(0, 60) } : t,
+      ),
+    )
+  }
+
   const resetAll = () => {
     setTrees([])
     setWatering(false)
@@ -220,6 +270,16 @@ function App() {
   const minutesIn = Math.floor(elapsed / 60000)
   const remaining = Math.max(0, alarmAfter - elapsed)
   const overdue = Math.max(0, elapsed - alarmAfter)
+
+  const firstStartedAt = trees.length
+    ? Math.min(
+        ...trees.map((t) => t.startedAt ?? t.completedAt ?? Number.MAX_SAFE_INTEGER),
+      )
+    : null
+  const sessionTotalMs = firstStartedAt ? Math.max(0, now - firstStartedAt) : 0
+  const sessionAvgMs = trees.length
+    ? trees.reduce((sum, t) => sum + (t.duration || 0), 0) / trees.length
+    : 0
 
   return (
     <div className="app">
@@ -344,12 +404,38 @@ function App() {
               </span>
             )}
             {trees.length > 0 && (
-              <button className="btn btn-ghost btn-reset" onClick={resetAll}>
-                Reset all
-              </button>
+              <>
+                <button
+                  className="btn btn-ghost"
+                  onClick={() => downloadCSV(trees.slice().reverse())}
+                >
+                  <DownloadIcon size={15} />
+                  Export CSV
+                </button>
+                <button className="btn btn-ghost btn-reset" onClick={resetAll}>
+                  Reset all
+                </button>
+              </>
             )}
           </div>
         </div>
+
+        {trees.length > 0 && (
+          <div className="session-summary" role="status">
+            <div className="session-stat">
+              <strong>{trees.length}</strong>
+              <span>trees</span>
+            </div>
+            <div className="session-stat">
+              <strong>{formatTime(sessionTotalMs)}</strong>
+              <span>session</span>
+            </div>
+            <div className="session-stat">
+              <strong>{formatTime(sessionAvgMs)}</strong>
+              <span>avg / tree</span>
+            </div>
+          </div>
+        )}
 
         {trees.length === 0 ? (
           <p className="empty">
@@ -373,7 +459,15 @@ function App() {
                 <tr key={tree.id}>
                   <td className="tree-cell">
                     <TreeIcon size={20} />
-                    <span className="tree-name">Tree {tree.number}</span>
+                    <input
+                      className="tree-name"
+                      type="text"
+                      value={tree.name}
+                      placeholder={`Tree ${tree.number}`}
+                      aria-label={`Name for tree ${tree.number}`}
+                      maxLength={60}
+                      onChange={(e) => renameTree(tree.id, e.target.value)}
+                    />
                   </td>
                   <td>{tree.startedAt ? formatTimeOfDay(tree.startedAt) : '—'}</td>
                   <td>{formatTime(tree.duration)}</td>
@@ -383,7 +477,7 @@ function App() {
                       type="button"
                       className="tree-delete"
                       onClick={() => deleteTree(tree.id)}
-                      aria-label={`Delete tree ${tree.number}`}
+                      aria-label={`Delete ${treeDisplayName(tree)}`}
                     >
                       <CloseIcon size={13} />
                     </button>

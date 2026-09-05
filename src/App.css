@@ -1018,6 +1018,10 @@
   border-radius: var(--r-md);
   border: 1px solid transparent;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   transition:
     transform 0.15s,
     box-shadow 0.2s,
@@ -1180,6 +1184,65 @@
 
 .tree-name {
   min-width: 0;
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  padding: 4px 6px;
+  box-sizing: border-box;
+  border-bottom: 1px dashed transparent;
+  border-radius: var(--r-xs);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.tree-name::placeholder {
+  color: var(--muted-soft);
+  font-weight: 500;
+}
+
+.tree-name:hover,
+.tree-name:focus {
+  border-bottom-color: var(--muted-soft);
+  background: var(--surface-soft);
+}
+
+.tree-name:focus {
+  border-bottom-color: var(--brand-teal);
+}
+
+/* ---------- Session summary ---------- */
+
+.session-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  border-radius: var(--r-lg);
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+}
+
+.session-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.session-stat strong {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
 }
 
 .col-actions {
